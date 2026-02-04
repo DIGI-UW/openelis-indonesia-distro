@@ -104,6 +104,7 @@ services:
             - ./configs/programs/:/var/lib/openelis-global/programs
             - ./configs/configuration:/var/lib/openelis-global/configuration
             - ./configs/menu/menu_config.json:/var/lib/openelis-global/menu/menu_config.json
+            - ./volume/branding:/var/lib/openelis-global/branding
         secrets:
             - source: common.properties
             
