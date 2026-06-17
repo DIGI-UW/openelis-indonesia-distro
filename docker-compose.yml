@@ -44,7 +44,7 @@ services:
 
     db.openelis.org:
         container_name: openelisglobal-database 
-        image: itechuw/openelis-global-2-database:develop
+        image: itechuw/openelis-global-2-database:demo-silnas
         platform: linux/amd64
         ports:
             - "15432:5432"
@@ -92,7 +92,6 @@ services:
             - SSL_KEYSTORE_PASSWORD
             - SSL_TRUSTSTORE_PATH
             - SSL_TRUSTSTORE_PASSWORD
-            - ORG_OPENELISGLOBAL_CONFIGURATION_INSTANCE_ID=jakarta
         volumes:
             -  key_trust-store-volume:/etc/openelis-global
             -  lucene_index-vol:/var/lib/lucene_index
@@ -111,7 +110,7 @@ services:
             
     fhir.openelis.org:
         container_name: external-fhir-api
-        image: itechuw/openelis-global-2-fhir:develop
+        image: itechuw/openelis-global-2-fhir:demo-silnas
         platform: linux/amd64
         ports:
             - "8081:8080"
@@ -155,7 +154,7 @@ services:
         tty: true
 
     proxy:
-        image: itechuw/openelis-global-2-proxy:develop
+        image: itechuw/openelis-global-2-proxy:demo-silnas
         container_name: openelisglobal-proxy
         platform: linux/amd64
         ports:
@@ -165,6 +164,9 @@ services:
             - certs-vol:/etc/nginx/certs/
             - keys-vol:/etc/nginx/keys/
             - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            # Let's Encrypt cert for indonesiadev.openelis-global.org + ACME webroot for renewals
+            - /etc/letsencrypt:/etc/letsencrypt:ro
+            - /var/www/certbot:/var/www/certbot:ro
             # - /KEYSTORE_PASSWORD:/etc/nginx/private/key_pass
             # - /etc/openelis-global/nginx.cert.pem:/etc/nginx/certs/cert.crt
             # - /etc/openelis-global/nginx.key.pem:/etc/nginx/certs/cert.key
