@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(BACKEND=/Users/macbookm1/uw/openelis-indonesia-distro/backend *)",
+      "Bash(git -C /Users/macbookm1/uw/openelis-indonesia-distro show HEAD:configs/configuration/backend/address-hierarchy/indonesia-values.csv)",
+      "Bash(python3 -)"
+    ],
+    "additionalDirectories": [
+      "/Users/macbookm1/uw/openelis-indonesia-distro/backend/compliance-standards"
+    ]
+  }
+}
