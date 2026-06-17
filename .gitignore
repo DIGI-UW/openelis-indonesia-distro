@@ -19,8 +19,29 @@ bin-release/
 # information for Eclipse / Flash Builder.
 *.idea
 
-# local log folders
+
+# Database bind mounts and local OE config overrides
 configs/logs/
-configs/database/data/
+configs/logs/*
+configs/database/data*/
 **/*checksum*.properties
 **/*checksums*.properties
+configs/properties/TotalSystemConfiguration.properties
+configs/properties/ChangedSystemConfiguration.properties
+
+
+# Node and Playwright
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+**/playwright/.auth/
+
+# CI and local validation artifacts
+test-artifacts/
+
+# IDE and OS
+.cursor/
+.claude/
+.idea/
+.DS_Store

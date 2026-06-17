@@ -69,7 +69,7 @@ services:
             
     oe.openelis.org:
         container_name: openelisglobal-webapp 
-        image: itechuw/openelis-global-2-dev-demo-silnas:demo-silnas
+        image: itechuw/openelis-global-2:demo-silnas
         platform: linux/amd64  
         depends_on:
             - db.openelis.org
@@ -78,6 +78,12 @@ services:
             - "8080:8080"
             - "8443:8443"
         restart: always
+        healthcheck:
+            test: ["CMD-SHELL", "curl -k -sf https://localhost:8443/OpenELIS-Global/health > /dev/null"]
+            interval: 15s
+            timeout: 10s
+            retries: 10
+            start_period: 360s
         networks:
           openelis-network:
               ipv4_address: 172.20.1.121
@@ -149,7 +155,7 @@ services:
             -  key_trust-store-volume:/etc/openelis-global 
        
     frontend.openelis.org:
-        image: itechuw/openelis-global-2-frontend-dev-demo-silnas:demo-silnas
+        image: itechuw/openelis-global-2-frontend:demo-silnas
         container_name: openelisglobal-front-end
         platform: linux/amd64
         networks:
@@ -171,17 +177,22 @@ services:
             - keys-vol:/etc/nginx/keys/
             - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
             # Let's Encrypt cert for indonesiadev.openelis-global.org + ACME webroot for renewals
-            - /etc/letsencrypt:/etc/letsencrypt:ro
-            - /var/www/certbot:/var/www/certbot:ro
+            # - /etc/letsencrypt:/etc/letsencrypt:ro
+            # - /var/www/certbot:/var/www/certbot:ro
             # - /KEYSTORE_PASSWORD:/etc/nginx/private/key_pass
             # - /etc/openelis-global/nginx.cert.pem:/etc/nginx/certs/cert.crt
             # - /etc/openelis-global/nginx.key.pem:/etc/nginx/certs/cert.key
         restart: unless-stopped
         networks:
             - openelis-network
-        logging: *local-logging    
+        logging: *local-logging
         depends_on:
-            - certs    
+            certs:
+                condition: service_completed_successfully
+            oe.openelis.org:
+                condition: service_healthy
+            frontend.openelis.org:
+                condition: service_started
     openelis-analyzer-bridge:
         container_name: openelis-analyzer-bridge
         image: itechuw/openelis-analyzer-bridge:3.0.4
