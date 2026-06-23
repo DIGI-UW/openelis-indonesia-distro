@@ -98,6 +98,7 @@ services:
             - SSL_KEYSTORE_PASSWORD
             - SSL_TRUSTSTORE_PATH
             - SSL_TRUSTSTORE_PASSWORD
+            - ORG_OPENELISGLOBAL_CONFIGURATION_INSTANCE_ID
 
             # Bridge HTTPS API (same Docker network). OE pushes analyzer bindings here at startup.
             - ANALYZER_BRIDGE_URL=https://bridge.openelis.org:8443
