@@ -67,13 +67,34 @@ services:
             interval: 10s
             retries: 10 
             
+    # One-shot init container: the OpenELIS webapp runs as uid 8443
+    # (tomcat_admin) and must write *-checksums.properties into the bind-mounted
+    # config tree. git does not track ownership, so a fresh clone/deploy lands
+    # the dir as the cloning user (e.g. 1000) and uid 8443 cannot write — every
+    # boot then re-imports the full config catalog (~836s) instead of skipping
+    # via persisted checksums. This fixes the ownership on every `up`, on any host.
+    config-perms:
+        container_name: openelis-config-perms
+        image: busybox:1.36
+        platform: linux/amd64
+        command: ["sh", "-c", "chown -R 8443:8444 /config && chmod -R u+rwX /config"]
+        volumes:
+            - ./configs/configuration:/config
+        restart: "no"
+        networks:
+            - openelis-network
+
     oe.openelis.org:
-        container_name: openelisglobal-webapp 
+        container_name: openelisglobal-webapp
         image: itechuw/openelis-global-2:demo-silnas
-        platform: linux/amd64  
+        platform: linux/amd64
         depends_on:
-            - db.openelis.org
-            - certs
+            db.openelis.org:
+                condition: service_started
+            certs:
+                condition: service_completed_successfully
+            config-perms:
+                condition: service_completed_successfully
         ports:
             - "8080:8080"
             - "8443:8443"
@@ -81,9 +102,15 @@ services:
         healthcheck:
             test: ["CMD-SHELL", "curl -k -sf https://localhost:8443/OpenELIS-Global/health > /dev/null"]
             interval: 15s
-            timeout: 10s
+            timeout: 15s
             retries: 10
-            start_period: 360s
+            # Cold first boot reseeds the full config catalog and measured ~836s
+            # (Server startup in [836392] ms) on this host. 360s was less than
+            # half that, so Docker flagged the container `unhealthy` for ~8 min
+            # of a perfectly healthy boot. 900s covers a cold boot with margin;
+            # once checksum files persist (config dir now writable by uid 8443)
+            # warm boots skip the reseed and go healthy well before this.
+            start_period: 900s
         networks:
           openelis-network:
               ipv4_address: 172.20.1.121
@@ -253,7 +280,14 @@ services:
         networks:
             - openelis-network
         environment:
-            AUTOHEAL_CONTAINER_LABEL: all
+            # Opt-in mode: only restart containers explicitly labeled
+            # `autoheal=true`. Previously `all`, which let autoheal SIGTERM the
+            # webapp whenever its healthcheck timed out during the slow JVM boot
+            # (Liquibase + Hibernate + Lucene on a memory-constrained host),
+            # killing it mid-startup in a restart loop. The webapp is left
+            # unlabeled so it can finish booting; `restart: always` still covers
+            # genuine crashes.
+            AUTOHEAL_CONTAINER_LABEL: autoheal
             TZ: America/New_York
         logging: *local-logging    
         volumes:
