@@ -57,6 +57,7 @@ DELETE FROM clinlims.vector_sampling_site WHERE id >= ${BASE};
 DELETE FROM clinlims.vector_species       WHERE id >= ${BASE};
 DELETE FROM clinlims.test                 WHERE id >= ${BASE};
 DELETE FROM clinlims.test_section         WHERE id >= ${BASE};
+DELETE FROM clinlims.organization         WHERE id >= ${BASE};
 DELETE FROM clinlims.type_of_sample       WHERE id >= ${BASE};
 DELETE FROM clinlims.analyte              WHERE id >= ${BASE};
 DELETE FROM clinlims.localization_value   WHERE id >= ${BASE};
@@ -183,7 +184,7 @@ BEGIN
   -- ---- Sampling lanes: one pool per (lane × ISO week) over 10 weeks ---------
   -- Each lane is a (site, species, assay) surveillance stream. A pool in week w
   -- is POSITIVE when (w + pos_phase) mod pos_every = 0, which spreads positives
-  -- across the series per pathogen; `resolve` lanes also emit an individual
+  -- across the series per pathogen; lanes flagged resolve also emit an individual
   -- deconvolution-resolved positive leaf so the observed-organism count has data.
   --   base_qty seeds a per-lane specimen count; a shared seasonal hump + jitter
   --   is added per week so the stacked density trend rises and falls naturally.
