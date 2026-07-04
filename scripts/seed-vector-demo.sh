@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # seed-vector-demo.sh — populate the V-04 Vector Surveillance dashboard with a
-# realistic, self-contained example dataset so it is reviewable out of the box.
+# realistic, self-contained Indonesian example dataset so it is reviewable and
+# demo-ready out of the box.
 #
 # The stock catalog carries no vector pools/results, so this seed creates the
 # WHOLE scenario itself (sample type → species → sites → tests +
@@ -9,6 +10,14 @@
 # catalog-driven via test_result.significance, which is metadata (no
 # transaction-REST path), so this seeds via `docker exec psql` against the
 # running stack rather than REST.
+#
+# Scenario (Indonesia): 6 mosquito species across 5 surveillance sites and
+# 4 pathogen assays, ~70 pools over 10 ISO weeks, with per-site/per-week
+# variation so every dashboard panel is populated:
+#   - malaria + sporozoite (CSP-ELISA) surveillance of Anopheles in eastern
+#     Indonesia (Kupang/NTT, Jayapura/Papua);
+#   - dengue surveillance of Aedes in urban Java/Bali (Jakarta, Surabaya,
+#     Denpasar); Japanese encephalitis surveillance of Culex (Denpasar).
 #
 # Usage:
 #   ./scripts/seed-vector-demo.sh           # seed (idempotent; skips if present)
@@ -35,6 +44,7 @@ BASE=970000
 if [[ "$CLEAN" == "yes" ]]; then
   echo "[seed-vector-demo] removing prior demo rows (id >= ${BASE})…"
   psql -v ON_ERROR_STOP=0 -q <<SQL || true
+DELETE FROM clinlims.analysis_qaevent      WHERE id >= ${BASE};
 DELETE FROM clinlims.result               WHERE id >= ${BASE};
 DELETE FROM clinlims.analysis             WHERE id >= ${BASE};
 DELETE FROM clinlims.test_result          WHERE id >= ${BASE};
@@ -61,23 +71,41 @@ DECLARE
   b         bigint := ${BASE};
   sample_status int;
   fmt       int;
-  -- species
-  sp_anoph  int := b + 1;  -- Anopheles gambiae
-  sp_aedes  int := b + 2;  -- Aedes aegypti
-  sp_culex  int := b + 3;  -- Culex quinquefasciatus
-  -- sites
-  site_a    int := b + 10;
-  site_b    int := b + 11;
+  qae_catalog int;   -- an existing QA_EVENT to attach QC failures to (may be null)
+  -- species (Indonesian mosquito vectors)
+  sp_sund  int := b + 1;  -- Anopheles sundaicus   (coastal malaria)
+  sp_macu  int := b + 2;  -- Anopheles maculatus   (hill/forest malaria)
+  sp_fara  int := b + 3;  -- Anopheles farauti     (eastern Indonesia malaria)
+  sp_aeae  int := b + 4;  -- Aedes aegypti         (dengue, urban)
+  sp_aeal  int := b + 5;  -- Aedes albopictus      (dengue, peri-urban)
+  sp_culx  int := b + 6;  -- Culex quinquefasciatus (JE / filariasis)
+  -- sites (Indonesian surveillance locations)
+  site_kpg int := b + 10; -- Kupang, NTT      (malaria)
+  site_jyp int := b + 11; -- Jayapura, Papua  (malaria)
+  site_jkt int := b + 12; -- Jakarta Utara    (dengue)
+  site_sby int := b + 13; -- Surabaya         (dengue)
+  site_dps int := b + 14; -- Denpasar, Bali   (dengue / JE)
   -- tests
-  t_mal     int := b + 20;  -- Malaria Parasite Detection
-  t_csp     int := b + 21;  -- Pan-Plasmodium CSP ELISA (sporozoite, LOINC 71712-2)
-  t_den     int := b + 22;  -- Dengue Virus Detection
+  t_mal    int := b + 20; -- Malaria Parasite Detection
+  t_csp    int := b + 21; -- Pan-Plasmodium CSP ELISA (sporozoite, LOINC 71712-2)
+  t_den    int := b + 22; -- Dengue Virus Detection
+  t_jev    int := b + 23; -- Japanese Encephalitis Virus Detection
   -- test_results (significance classifications)
-  tr_mal_p  int := b + 30; tr_mal_n int := b + 31;
-  tr_csp_p  int := b + 32; tr_csp_n int := b + 33;
-  tr_den_p  int := b + 34; tr_den_n int := b + 35;
-  rec record;
+  tr_mal_p int := b + 30; tr_mal_n int := b + 31;
+  tr_csp_p int := b + 32; tr_csp_n int := b + 33;
+  tr_den_p int := b + 34; tr_den_n int := b + 35;
+  tr_jev_p int := b + 36; tr_jev_n int := b + 37;
+  lane record;
+  w        int;
+  off      int;
+  is_pos   boolean;
+  trid     int;
+  decon    text;
+  cdate    date;
+  qty      int;
   sid int; itm int; pid int; aid int; rid int; trv text;
+  r_itm int; r_aid int;
+  qc_k int := 0;
 BEGIN
   IF EXISTS (SELECT 1 FROM clinlims.test WHERE id = t_mal) THEN
     RAISE NOTICE 'vector demo already present — skipping (use --clean to reseed)';
@@ -93,6 +121,9 @@ BEGIN
     fmt := b;
     INSERT INTO clinlims.test_formats(id, lastupdated) VALUES (b, now());
   END IF;
+
+  -- An existing catalog QA event, reused to mark a few analyses as QC failures.
+  SELECT id INTO qae_catalog FROM clinlims.qa_event ORDER BY id LIMIT 1;
 
   -- Owning organization for the vector test section.
   INSERT INTO clinlims.organization(id, name, short_name, local_abbrev, code, lastupdated)
@@ -116,20 +147,27 @@ BEGIN
 
   -- Species (each tied to the Mosquito sample type).
   INSERT INTO clinlims.vector_species(id, genus, species, sample_type_id, active, sys_user_id, lastupdated) VALUES
-    (sp_anoph, 'Anopheles', 'gambiae',          b, true, 1, now()),
-    (sp_aedes, 'Aedes',     'aegypti',          b, true, 1, now()),
-    (sp_culex, 'Culex',     'quinquefasciatus', b, true, 1, now());
+    (sp_sund, 'Anopheles', 'sundaicus',        b, true, 1, now()),
+    (sp_macu, 'Anopheles', 'maculatus',        b, true, 1, now()),
+    (sp_fara, 'Anopheles', 'farauti',          b, true, 1, now()),
+    (sp_aeae, 'Aedes',     'aegypti',          b, true, 1, now()),
+    (sp_aeal, 'Aedes',     'albopictus',       b, true, 1, now()),
+    (sp_culx, 'Culex',     'quinquefasciatus', b, true, 1, now());
 
   INSERT INTO clinlims.vector_sampling_site(id, code, name, active, sys_user_id, lastupdated) VALUES
-    (site_a, 'SITE-A', 'Antananarivo North', true, 1, now()),
-    (site_b, 'SITE-B', 'Toamasina Coast',    true, 1, now());
+    (site_kpg, 'KPG',   'Kupang',        true, 1, now()),
+    (site_jyp, 'JYP',   'Jayapura',      true, 1, now()),
+    (site_jkt, 'JKT-U', 'Jakarta Utara', true, 1, now()),
+    (site_sby, 'SBY',   'Surabaya',      true, 1, now()),
+    (site_dps, 'DPS',   'Denpasar',      true, 1, now());
 
   -- Pathogen-detection tests. CSP carries the sporozoite LOINC 71712-2.
   INSERT INTO clinlims.test(id, description, name, guid, loinc, test_section_id, test_format_id,
       orderable, antimicrobial_resistance, sort_order, lastupdated) VALUES
-    (t_mal, 'Malaria Parasite Detection', 'Malaria Parasite Detection', gen_random_uuid()::text, '32700-7', b, fmt, true, false, 1, now()),
-    (t_csp, 'Pan-Plasmodium CSP ELISA',  'Pan-Plasmodium CSP ELISA',   gen_random_uuid()::text, '71712-2', b, fmt, true, false, 2, now()),
-    (t_den, 'Dengue Virus Detection',    'Dengue Virus Detection',     gen_random_uuid()::text, '32700-8', b, fmt, true, false, 3, now());
+    (t_mal, 'Malaria Parasite Detection',        'Malaria Parasite Detection',        gen_random_uuid()::text, '32700-7', b, fmt, true, false, 1, now()),
+    (t_csp, 'Pan-Plasmodium CSP ELISA',          'Pan-Plasmodium CSP ELISA',          gen_random_uuid()::text, '71712-2', b, fmt, true, false, 2, now()),
+    (t_den, 'Dengue Virus Detection',            'Dengue Virus Detection',            gen_random_uuid()::text, '32700-8', b, fmt, true, false, 3, now()),
+    (t_jev, 'Japanese Encephalitis Virus Detection', 'Japanese Encephalitis Virus Detection', gen_random_uuid()::text, '32700-9', b, fmt, true, false, 4, now());
 
   -- Significance-classified catalog results (the positivity source of truth).
   INSERT INTO clinlims.test_result(id, test_id, tst_rslt_type, value, significance, is_active, sort_order, lastupdated) VALUES
@@ -138,75 +176,102 @@ BEGIN
     (tr_csp_p, t_csp, 'D', 'Positive',     'POSITIVE', true, 1, now()),
     (tr_csp_n, t_csp, 'D', 'Negative',     'NEGATIVE', true, 2, now()),
     (tr_den_p, t_den, 'D', 'Detected',     'POSITIVE', true, 1, now()),
-    (tr_den_n, t_den, 'D', 'Not Detected', 'NEGATIVE', true, 2, now());
+    (tr_den_n, t_den, 'D', 'Not Detected', 'NEGATIVE', true, 2, now()),
+    (tr_jev_p, t_jev, 'D', 'Detected',     'POSITIVE', true, 1, now()),
+    (tr_jev_n, t_jev, 'D', 'Not Detected', 'NEGATIVE', true, 2, now());
 
-  -- ---- Pools across 2 ISO weeks × 2 sites × 3 species --------------------
-  -- Each row: (pool offset, species, site, collect date, decon status,
-  --            pathogen test, classified result, quantity).
-  FOR rec IN SELECT * FROM (VALUES
-      -- Anopheles @ Site A, week 1: confirmed-negative, then a resolved positive.
-      (100, sp_anoph, site_a, DATE '2026-07-06', 'COMPLETE',        t_mal, tr_mal_n, 10),
-      (101, sp_anoph, site_a, DATE '2026-07-06', 'COMPLETE',        t_mal, tr_mal_p, 10),
-      -- Anopheles @ Site A, week 1: CSP-ELISA positive (sporozoite signal).
-      (102, sp_anoph, site_a, DATE '2026-07-06', 'NOT_APPLICABLE',  t_csp, tr_csp_p, 8),
-      -- Aedes @ Site B, week 1: two Dengue-positive pools + one negative.
-      (103, sp_aedes, site_b, DATE '2026-07-07', 'NOT_APPLICABLE',  t_den, tr_den_p, 12),
-      (104, sp_aedes, site_b, DATE '2026-07-07', 'NOT_APPLICABLE',  t_den, tr_den_p, 9),
-      (105, sp_aedes, site_b, DATE '2026-07-07', 'COMPLETE',        t_den, tr_den_n, 11),
-      -- Culex @ Site B, week 1: malaria-tested, negative (cross-species guard).
-      (106, sp_culex, site_b, DATE '2026-07-08', 'NOT_APPLICABLE',  t_mal, tr_mal_n, 5),
-      -- Anopheles @ Site A, week 2: another malaria positive (density trend).
-      (107, sp_anoph, site_a, DATE '2026-07-13', 'NOT_APPLICABLE',  t_mal, tr_mal_p, 10)
-    ) AS v(off, species, site, cdate, decon, testid, trid, qty)
+  -- ---- Sampling lanes: one pool per (lane × ISO week) over 10 weeks ---------
+  -- Each lane is a (site, species, assay) surveillance stream. A pool in week w
+  -- is POSITIVE when (w + pos_phase) mod pos_every = 0, which spreads positives
+  -- across the series per pathogen; `resolve` lanes also emit an individual
+  -- deconvolution-resolved positive leaf so the observed-organism count has data.
+  --   base_qty seeds a per-lane specimen count; a shared seasonal hump + jitter
+  --   is added per week so the stacked density trend rises and falls naturally.
+  FOR lane IN SELECT * FROM (VALUES
+      --  no site      species   assay  tr_pos    tr_neg    base pos_every pos_phase resolve
+      (1, site_kpg, sp_sund, t_mal, tr_mal_p, tr_mal_n, 12, 4, 0, true),
+      (2, site_kpg, sp_sund, t_csp, tr_csp_p, tr_csp_n, 12, 5, 3, false),
+      (3, site_jyp, sp_fara, t_mal, tr_mal_p, tr_mal_n, 10, 4, 1, true),
+      (4, site_jyp, sp_macu, t_csp, tr_csp_p, tr_csp_n,  8, 9, 5, false),
+      (5, site_jkt, sp_aeae, t_den, tr_den_p, tr_den_n, 14, 3, 1, false),
+      (6, site_sby, sp_aeal, t_den, tr_den_p, tr_den_n, 11, 3, 0, false),
+      (7, site_dps, sp_culx, t_jev, tr_jev_p, tr_jev_n,  9, 4, 2, false)
+    ) AS L(lane_no, site, species, testid, tr_p, tr_n, base_qty, pos_every, pos_phase, resolve)
   LOOP
-    sid := b + 200 + rec.off;
-    itm := b + 400 + rec.off;
-    pid := b + 600 + rec.off;
-    aid := b + 800 + rec.off;
-    rid := b + 1000 + rec.off;
+    FOR w IN 0..9 LOOP
+      off    := lane.lane_no * 100 + w;
+      is_pos := (lane.pos_every > 0 AND ((w + lane.pos_phase) % lane.pos_every) = 0);
+      trid   := CASE WHEN is_pos THEN lane.tr_p ELSE lane.tr_n END;
+      -- Negative and resolved-positive pools are COMPLETE; unresolved positives
+      -- stay NOT_APPLICABLE. Positivity itself is driven by significance, not this.
+      decon  := CASE WHEN is_pos AND NOT lane.resolve THEN 'NOT_APPLICABLE' ELSE 'COMPLETE' END;
+      -- 10 contiguous ISO weeks from 2026-04-27 (Mon), staggered within the week.
+      cdate  := DATE '2026-04-27' + (w * 7 + (lane.lane_no % 5));
+      qty    := lane.base_qty + greatest(0, 5 - abs(w - 5)) + ((lane.lane_no * 2 + w) % 4);
 
-    INSERT INTO clinlims.sample(id, accession_number, domain, status_id, entered_date,
-        received_date, collection_date, revision, is_confirmation, lastupdated)
-      VALUES (sid, 'VS-DEMO-' || rec.off, 'V', sample_status, rec.cdate, rec.cdate, rec.cdate, 0, false, now());
+      sid := b + 100000 + off;
+      itm := b + 200000 + off;
+      pid := b + 300000 + off;
+      aid := b + 400000 + off;
+      rid := b + 500000 + off;
 
-    INSERT INTO clinlims.sample_item(id, samp_id, sort_order, status_id, typeosamp_id,
-        quantity, collection_location_id, collection_date, voided, lastupdated)
-      VALUES (itm, sid, 1, sample_status, b, rec.qty, rec.site, rec.cdate, false, now());
+      INSERT INTO clinlims.sample(id, accession_number, domain, status_id, entered_date,
+          received_date, collection_date, revision, is_confirmation, lastupdated)
+        VALUES (sid, 'VS-DEMO-' || off, 'V', sample_status, cdate, cdate, cdate, 0, false, now());
 
-    INSERT INTO clinlims.vector_specimen_identification(id, sample_item_id, vector_species_id,
-        identification_method, confidence, identified_by_user_id, lastupdated)
-      VALUES (b + 1200 + rec.off, itm, rec.species, 'MORPHOLOGICAL', 'CONFIRMED', 1, now());
+      INSERT INTO clinlims.sample_item(id, samp_id, sort_order, status_id, typeosamp_id,
+          quantity, collection_location_id, collection_date, voided, lastupdated)
+        VALUES (itm, sid, 1, sample_status, b, qty, lane.site, cdate, false, now());
 
-    INSERT INTO clinlims.vector_pool(id, sample_id, active, deconvolution_status, external_id, sys_user_id, lastupdated)
-      VALUES (pid, sid, true, rec.decon, 'VS-DEMO-' || rec.off, 1, now());
-    INSERT INTO clinlims.vector_pool_member(vector_pool_id, sample_item_id, lastupdated)
-      VALUES (pid, itm, now());
+      INSERT INTO clinlims.vector_specimen_identification(id, sample_item_id, vector_species_id,
+          identification_method, confidence, identified_by_user_id, lastupdated)
+        VALUES (b + 600000 + off, itm, lane.species, 'MORPHOLOGICAL', 'CONFIRMED', 1, now());
 
-    SELECT value INTO trv FROM clinlims.test_result WHERE id = rec.trid;
-    INSERT INTO clinlims.analysis(id, vector_pool_id, test_id, test_sect_id, analysis_type,
-        revision, status_id, status, started_date, entry_date, type_of_sample_name, lastupdated)
-      VALUES (aid, pid, rec.testid, b, 'MANUAL', 1, sample_status, '1', rec.cdate, rec.cdate, 'Mosquito', now());
-    INSERT INTO clinlims.result(id, analysis_id, analyte_id, test_result_id, sort_order,
-        result_type, value, grouping, lastupdated)
-      VALUES (rid, aid, b, rec.trid, 1, 'D', trv, 0, now());
+      INSERT INTO clinlims.vector_pool(id, sample_id, active, deconvolution_status, external_id, sys_user_id, lastupdated)
+        VALUES (pid, sid, true, decon, 'VS-DEMO-' || off, 1, now());
+      INSERT INTO clinlims.vector_pool_member(vector_pool_id, sample_item_id, lastupdated)
+        VALUES (pid, itm, now());
+
+      SELECT value INTO trv FROM clinlims.test_result WHERE id = trid;
+      INSERT INTO clinlims.analysis(id, vector_pool_id, test_id, test_sect_id, analysis_type,
+          revision, status_id, status, started_date, entry_date, type_of_sample_name, lastupdated)
+        VALUES (aid, pid, lane.testid, b, 'MANUAL', 1, sample_status, '1', cdate, cdate, 'Mosquito', now());
+      INSERT INTO clinlims.result(id, analysis_id, analyte_id, test_result_id, sort_order,
+          result_type, value, grouping, lastupdated)
+        VALUES (rid, aid, b, trid, 1, 'D', trv, 0, now());
+
+      -- Deconvolution-resolved positive: an individual positive leaf so the
+      -- deconvolution-aware observed-organism count has something to find.
+      IF is_pos AND lane.resolve THEN
+        r_itm := b + 700000 + off;
+        r_aid := b + 740000 + off;
+        INSERT INTO clinlims.sample_item(id, samp_id, sort_order, status_id, typeosamp_id,
+            quantity, collection_location_id, collection_date, voided, lastupdated)
+          VALUES (r_itm, sid, 2, sample_status, b, 1, lane.site, cdate, false, now());
+        INSERT INTO clinlims.vector_specimen_identification(id, sample_item_id, vector_species_id,
+            identification_method, confidence, identified_by_user_id, lastupdated)
+          VALUES (b + 720000 + off, r_itm, lane.species, 'MOLECULAR', 'CONFIRMED', 1, now());
+        INSERT INTO clinlims.analysis(id, sampitem_id, test_id, test_sect_id, analysis_type, revision,
+            status_id, status, started_date, entry_date, type_of_sample_name, lastupdated)
+          VALUES (r_aid, r_itm, lane.testid, b, 'MANUAL', 1, sample_status, '1', cdate, cdate, 'Mosquito', now());
+        INSERT INTO clinlims.result(id, analysis_id, analyte_id, test_result_id, sort_order,
+            result_type, value, grouping, lastupdated)
+          VALUES (b + 760000 + off, r_aid, b, lane.tr_p, 1, 'D', trv, 0, now());
+      END IF;
+
+      -- Sprinkle a few QC failures (a QA event on the pool analysis) so the QC
+      -- pass-rate panel reads a believable <100%. Skipped if the catalog has no
+      -- QA event to reference.
+      IF qae_catalog IS NOT NULL AND qc_k < 3
+         AND lane.lane_no IN (3, 5, 6) AND w = (lane.lane_no + 1) THEN
+        qc_k := qc_k + 1;
+        INSERT INTO clinlims.analysis_qaevent(id, analysis_id, qa_event_id, lastupdated)
+          VALUES (b + 800000 + qc_k, aid, qae_catalog, now());
+      END IF;
+    END LOOP;
   END LOOP;
 
-  -- Resolved Anopheles positive (pool 101): an individual positive leaf so the
-  -- deconvolution-aware observed-organism count has something to find.
-  INSERT INTO clinlims.sample_item(id, samp_id, sort_order, status_id, typeosamp_id,
-      quantity, collection_location_id, collection_date, voided, lastupdated)
-    VALUES (b + 1500, b + 301, 2, sample_status, b, 1, site_a, DATE '2026-07-06', false, now());
-  INSERT INTO clinlims.vector_specimen_identification(id, sample_item_id, vector_species_id,
-      identification_method, confidence, identified_by_user_id, lastupdated)
-    VALUES (b + 1501, b + 1500, sp_anoph, 'MOLECULAR', 'CONFIRMED', 1, now());
-  INSERT INTO clinlims.analysis(id, sampitem_id, test_id, test_sect_id, analysis_type, revision,
-      status_id, status, started_date, entry_date, type_of_sample_name, lastupdated)
-    VALUES (b + 1502, b + 1500, t_mal, b, 'MANUAL', 1, sample_status, '1', DATE '2026-07-06', DATE '2026-07-06', 'Mosquito', now());
-  INSERT INTO clinlims.result(id, analysis_id, analyte_id, test_result_id, sort_order,
-      result_type, value, grouping, lastupdated)
-    VALUES (b + 1503, b + 1502, b, tr_mal_p, 1, 'D', 'Detected', 0, now());
-
-  RAISE NOTICE 'vector demo seeded: 3 species, 2 sites, 3 tests, 8 pools + 1 resolved leaf';
+  RAISE NOTICE 'vector demo seeded: 6 species, 5 sites, 4 assays, 70 pools over 10 weeks (% QC failures)', qc_k;
 END \$\$;
 SQL
 
@@ -215,5 +280,6 @@ psql -t -A -c "
   SELECT 'pools=' || count(*) FROM clinlims.vector_pool WHERE id >= ${BASE}
   UNION ALL SELECT 'positive_results=' || count(*) FROM clinlims.result r
     JOIN clinlims.test_result tr ON tr.id = r.test_result_id
-    WHERE r.id >= ${BASE} AND tr.significance = 'POSITIVE';"
+    WHERE r.id >= ${BASE} AND tr.significance = 'POSITIVE'
+  UNION ALL SELECT 'qc_failures=' || count(*) FROM clinlims.analysis_qaevent WHERE id >= ${BASE};"
 echo "[seed-vector-demo] done — open /VectorSurveillanceReport and Apply."
