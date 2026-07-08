@@ -258,3 +258,11 @@ Mosquito Species Identification,A,,,1,N,Y,Y,,,
 Fly Species Identification,A,,,1,N,Y,Y,,,
 Flea Species Identification,A,,,1,N,Y,Y,,,
 Rodent Species Identification,A,,,1,N,Y,Y,,,
+Malaria Parasite Detection,D,Detected,Test Results,1,N,Y,N,,,POSITIVE
+Malaria Parasite Detection,D,Not Detected,Test Results,2,N,Y,Y,,,NEGATIVE
+Pan-Plasmodium CSP ELISA,D,Detected,Test Results,1,N,Y,N,,,POSITIVE
+Pan-Plasmodium CSP ELISA,D,Not Detected,Test Results,2,N,Y,Y,,,NEGATIVE
+Dengue Virus Detection,D,Detected,Test Results,1,N,Y,N,,,POSITIVE
+Dengue Virus Detection,D,Not Detected,Test Results,2,N,Y,Y,,,NEGATIVE
+Japanese Encephalitis Virus Detection,D,Detected,Test Results,1,N,Y,N,,,POSITIVE
+Japanese Encephalitis Virus Detection,D,Not Detected,Test Results,2,N,Y,Y,,,NEGATIVE

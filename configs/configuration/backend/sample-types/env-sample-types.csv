@@ -66,3 +66,8 @@ Swab tenggorok binatang pembawa penyakit,SWTEBI,V,Y,335,Throat Swab from Disease
 Swab tenggorok hewan,SWTEHE,V,Y,336,Animal Throat Swab,Animal Throat Swab,Animal Throat Swab,Swab tenggorok hewan
 Tanah,TA,V,Y,337,Soil,Sol,Suelo,Tanah
 Usap debu,USDE,V,Y,338,Dust Swab,Prélèvement de Poussière,Hisopo de Polvo,Usap debu
+# Vector surveillance sample types (V-04) — abbrev must match vector-species.csv sampleTypeAbbrev
+Mosquito,MOSQUITO,V,Y,491,Mosquito,,,Mosquito
+Flea,FLEA,V,Y,492,Flea,,,Flea
+Fly,FLY,V,Y,493,Fly,,,Fly
+Rodent,RODENT,V,Y,494,Rodent,,,Rodent

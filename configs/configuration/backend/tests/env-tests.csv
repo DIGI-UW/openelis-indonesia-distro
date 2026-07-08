@@ -567,3 +567,8 @@ Staphylococcus aureus-Mikrobiologi usap alat-Alat makan,Alkes-PKRT,Alat makan,10
 Staphylococcus aureus-Mikrobiologi usap alat-Alat masak,Alkes-PKRT,Alat masak,100897-8,Y,Y,1552,,Staphylococcus aureus-Mikrobiologi usap alat-Alat masak,,,Staphylococcus aureus-Mikrobiologi usap alat-Alat masak
 Staphylococcus aureus-Mikrobiologi usap alat-Alat lain,Alkes-PKRT,Alat lain,100897-8,Y,Y,1553,,Staphylococcus aureus-Mikrobiologi usap alat-Alat lain,,,Staphylococcus aureus-Mikrobiologi usap alat-Alat lain
 Uji sensitivitas,Alkes-PKRT,IVD,101129-5,Y,N,1554,%,Uji sensitivitas,,,Uji sensitivitas
+# Vector surveillance pathogen tests (V-04) — orderable for the Mosquito sample type
+Malaria Parasite Detection,Vector Pathogen,Mosquito,32700-7,Y,Y,1491,,Malaria Parasite Detection,,,Deteksi Parasit Malaria
+Pan-Plasmodium CSP ELISA,Vector Pathogen,Mosquito,71712-2,Y,Y,1492,,Pan-Plasmodium CSP ELISA,,,Pan-Plasmodium CSP ELISA
+Dengue Virus Detection,Vector Pathogen,Mosquito,32700-8,Y,Y,1493,,Dengue Virus Detection,,,Deteksi Virus Dengue
+Japanese Encephalitis Virus Detection,Vector Pathogen,Mosquito,32700-9,Y,Y,1494,,Japanese Encephalitis Virus Detection,,,Deteksi Virus Japanese Encephalitis
