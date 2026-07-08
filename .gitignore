@@ -33,6 +33,9 @@ configs/properties/ChangedSystemConfiguration.properties
 # Node and Playwright
 node_modules/
 test-results/
+# but the config-import test-results catalog is source, not a Playwright artifact
+!configs/configuration/backend/test-results/
+!configs/configuration/backend/test-results/**
 playwright-report/
 blob-report/
 **/playwright/.auth/
