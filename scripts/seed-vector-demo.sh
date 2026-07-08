@@ -48,6 +48,7 @@ DELETE FROM clinlims.analysis_qaevent      WHERE id >= ${BASE};
 DELETE FROM clinlims.result               WHERE id >= ${BASE};
 DELETE FROM clinlims.analysis             WHERE id >= ${BASE};
 DELETE FROM clinlims.test_result          WHERE id >= ${BASE};
+DELETE FROM clinlims.observation_history  WHERE id >= ${BASE};
 DELETE FROM clinlims.vector_pool_member   WHERE vector_pool_id >= ${BASE};
 DELETE FROM clinlims.vector_pool          WHERE id >= ${BASE};
 DELETE FROM clinlims.vector_specimen_identification WHERE id >= ${BASE};
@@ -107,6 +108,7 @@ DECLARE
   sid int; itm int; pid int; aid int; rid int; trv text;
   r_itm int; r_aid int;
   qc_k int := 0;
+  oht_tc int; oht_tn int;   -- observation_history_type ids for trap-count / trap-nights
 BEGIN
   IF EXISTS (SELECT 1 FROM clinlims.test WHERE id = t_mal) THEN
     RAISE NOTICE 'vector demo already present — skipping (use --clean to reseed)';
@@ -115,6 +117,11 @@ BEGIN
 
   SELECT id INTO sample_status FROM clinlims.status_of_sample
     WHERE status_type = 'SAMPLE' ORDER BY id LIMIT 1;
+
+  -- Trapping-effort observation types (seeded by Liquibase 053). Null-safe: if a
+  -- deployment predates them, effort is simply not seeded and density degrades.
+  SELECT id INTO oht_tc FROM clinlims.observation_history_type WHERE type_name = 'vecTrapCount';
+  SELECT id INTO oht_tn FROM clinlims.observation_history_type WHERE type_name = 'vecTrapNights';
 
   -- A test_format is required by test rows; reuse one if present, else make ours.
   SELECT id INTO fmt FROM clinlims.test_formats LIMIT 1;
@@ -240,6 +247,18 @@ BEGIN
       INSERT INTO clinlims.result(id, analysis_id, analyte_id, test_result_id, sort_order,
           result_type, value, grouping, lastupdated)
         VALUES (rid, aid, b, trid, 1, 'D', trv, 0, now());
+
+      -- Trapping effort (traps x nights) so the density panel shows organisms per
+      -- trap-night. Lane 7 (Denpasar) intentionally records no effort, demonstrating
+      -- the "effort not recorded" degrade state next to the effort-normalized sites.
+      IF lane.lane_no <> 7 AND oht_tc IS NOT NULL AND oht_tn IS NOT NULL THEN
+        INSERT INTO clinlims.observation_history(id, sample_id, observation_history_type_id,
+            value_type, value, lastupdated)
+          VALUES (b + 800000 + off, sid, oht_tc, 'L', (4 + (lane.lane_no % 3))::text, now());
+        INSERT INTO clinlims.observation_history(id, sample_id, observation_history_type_id,
+            value_type, value, lastupdated)
+          VALUES (b + 810000 + off, sid, oht_tn, 'L', (2 + (w % 2))::text, now());
+      END IF;
 
       -- Deconvolution-resolved positive: an individual positive leaf so the
       -- deconvolution-aware observed-organism count has something to find.
