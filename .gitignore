@@ -33,6 +33,10 @@ configs/properties/ChangedSystemConfiguration.properties
 # Node and Playwright
 node_modules/
 test-results/
+# Re-include the config-import test-results domain (real config); the pattern
+# above targets Playwright's output dir and collides with this config path.
+!configs/configuration/backend/test-results/
+!configs/configuration/backend/test-results/*.csv
 playwright-report/
 blob-report/
 **/playwright/.auth/

@@ -1,0 +1,67 @@
+# Vector pathogen-detection result options + surveillance significance.
+# Each detection assay resolves to Positive/Negative (dictionary category
+# vecPathogenResult). The `significance` column (POSITIVE/NEGATIVE) is what the
+# surveillance dashboard's positivity / MIR / sporozoite indices count. testName
+# must match the "Vector Surveillance" rows in tests/<city>/example-tests.csv.
+# Non-detection vector assays (genotyping, bloodmeal host ID, WHO bioassays,
+# sequencing, virus isolation) are intentionally excluded — they use other result
+# models, not positive/negative pathogen significance.
+testName,resultType,resultValue,dictionaryCategory,sortOrder,isQuantifiable,isActive,isNormal,significantDigits,flags,significance
+Malaria Parasite Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Malaria Parasite Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Pan-Plasmodium CSP ELISA,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Pan-Plasmodium CSP ELISA,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Pan-Plasmodium 18S rRNA PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Pan-Plasmodium 18S rRNA PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+P. falciparum species-specific PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+P. falciparum species-specific PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+P. vivax species-specific PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+P. vivax species-specific PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+P. malariae species-specific PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+P. malariae species-specific PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+P. ovale species-specific PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+P. ovale species-specific PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Sporozoite Microscopy (Salivary Gland Dissection),D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Sporozoite Microscopy (Salivary Gland Dissection),D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Dengue Virus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Dengue Virus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+DENV NS1 Antigen ELISA,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+DENV NS1 Antigen ELISA,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+DENV Pan-serotype RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+DENV Pan-serotype RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+DENV-1 RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+DENV-1 RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+DENV-2 RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+DENV-2 RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+DENV-3 RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+DENV-3 RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+DENV-4 RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+DENV-4 RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Chikungunya Virus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Chikungunya Virus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+CHIKV RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+CHIKV RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+CHIKV IgM ELISA,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+CHIKV IgM ELISA,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Zika Virus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Zika Virus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Zika RT-PCR (NS5 target),D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Zika RT-PCR (NS5 target),D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+West Nile Virus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+West Nile Virus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Pan-flavivirus RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Pan-flavivirus RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Pan-alphavirus RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Pan-alphavirus RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Trypanosoma Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Trypanosoma Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Leishmaniasis Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Leishmaniasis Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Yersinia pestis Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Yersinia pestis Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Rickettsia Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Rickettsia Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Leptospira Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Leptospira Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Hantavirus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Hantavirus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
