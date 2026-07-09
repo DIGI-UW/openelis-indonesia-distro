@@ -5,6 +5,32 @@
       "childMenus": []
     },
     {
+      "elementId": "menu_add_order",
+      "childMenus": [
+        {
+          "elementId": "menu_vector_workflow",
+          "childMenus": [
+            {
+              "elementId": "menu_vector_dashboard",
+              "childMenus": []
+            },
+            {
+              "elementId": "menu_vector_enter",
+              "childMenus": []
+            },
+            {
+              "elementId": "menu_vector_label",
+              "childMenus": []
+            },
+            {
+              "elementId": "menu_vector_qa",
+              "childMenus": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "elementId": "menu_generic_sample",
       "childMenus": [
         {
