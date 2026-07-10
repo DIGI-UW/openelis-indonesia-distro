@@ -41,6 +41,8 @@ Zika RT-PCR (NS5 target),D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
 Zika RT-PCR (NS5 target),D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
 West Nile Virus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
 West Nile Virus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
+Japanese Encephalitis Virus Detection,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
+Japanese Encephalitis Virus Detection,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
 Pan-flavivirus RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
 Pan-flavivirus RT-PCR,D,Negative,vecPathogenResult,2,N,Y,Y,,,NEGATIVE
 Pan-alphavirus RT-PCR,D,Positive,vecPathogenResult,1,N,Y,N,,,POSITIVE
