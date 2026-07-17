@@ -13,6 +13,9 @@ Aedes,aegypti,,MOSQUITO,Y,aedesAegyptiPathogens,mosquitoFullCycle
 Aedes,albopictus,,MOSQUITO,Y,aedesAlbopictusPathogens,mosquitoFullCycle
 Anopheles,gambiae,,MOSQUITO,Y,anophelesPathogens,mosquitoFullCycle
 Anopheles,arabiensis,,MOSQUITO,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,sundaicus,,MOSQUITO,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,farauti,,MOSQUITO,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,maculatus,,MOSQUITO,Y,anophelesPathogens,mosquitoFullCycle
 Culex,quinquefasciatus,,MOSQUITO,Y,culexPathogens,mosquitoFullCycle
 Phlebotomus,papatasi,,FLY,Y,phlebotomusPathogens,flyStages
 Musca,domestica,,FLY,Y,muscaPathogens,flyStages
@@ -25,12 +28,18 @@ Aedes,aegypti,,NY,Y,aedesAegyptiPathogens,mosquitoFullCycle
 Aedes,albopictus,,NY,Y,aedesAlbopictusPathogens,mosquitoFullCycle
 Anopheles,gambiae,,NY,Y,anophelesPathogens,mosquitoFullCycle
 Anopheles,arabiensis,,NY,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,sundaicus,,NY,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,farauti,,NY,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,maculatus,,NY,Y,anophelesPathogens,mosquitoFullCycle
 Culex,quinquefasciatus,,NY,Y,culexPathogens,mosquitoFullCycle
 # NYDE = Nyamuk dewasa (Adult Mosquito)
 Aedes,aegypti,,NYDE,Y,aedesAegyptiPathogens,mosquitoFullCycle
 Aedes,albopictus,,NYDE,Y,aedesAlbopictusPathogens,mosquitoFullCycle
 Anopheles,gambiae,,NYDE,Y,anophelesPathogens,mosquitoFullCycle
 Anopheles,arabiensis,,NYDE,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,sundaicus,,NYDE,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,farauti,,NYDE,Y,anophelesPathogens,mosquitoFullCycle
+Anopheles,maculatus,,NYDE,Y,anophelesPathogens,mosquitoFullCycle
 Culex,quinquefasciatus,,NYDE,Y,culexPathogens,mosquitoFullCycle
 # JENY = Jentik nyamuk / LANY = Larva nyamuk (Mosquito Larva)
 Aedes,aegypti,,JENY,Y,aedesAegyptiPathogens,mosquitoFullCycle
